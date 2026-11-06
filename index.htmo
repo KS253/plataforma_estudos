@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sistema Eletronico</title>
+    <link href="./output.css" rel="stylesheet">
+</head>
+    <style>
+    body {
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    .product-card {
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 35px rgba(20, 25, 50, .10);
+    }
+
+    .add-btn {
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .add-btn:active {
+      transform: scale(.88);
+    }
+  </style>
+<body class="min-h-screen bg-slate-50 bg-gray-100">
+<!-- Mudamos para flex-row para alinhar na horizontal e corrigimos para gap-x-9 -->
+
+<nav class="fixed top-0 left-0 z-50 flex h-11 w-full items-center justify-between bg-sky-900 px-5 shadow-md">
+
+  <!-- Nome no canto esquerdo -->
+  <a href="#"
+     class="shrink-0 text-xl font-extrabold tracking-tight text-white mr-4">
+    Tech<span class="text-red-400">Store</span>
+  </a>
+
+< class="relative flex items-center justify-center">
+
+
+  <!-- Carrinho no canto direito -->
+  <button
+    id="cart-button"
+    class=" m-2 relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-sky-800 hover:text-blue-400 focus:outline-none"
+    aria-label="Carrinho de compras"
+    type="button"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="h-6 w-6"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M2.25 3h1.386c.51 0 .955.343 1.087.836L5.1 6.75m0 0h14.55l-1.5 8.25H7.125L5.1 6.75ZM7.125 15h11.025M8.25 20.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm9 0a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+      />
+    </svg>
+
+    <!-- Contador -->
+    <span
+      id="cart-count"
+      class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white"
+    >0</span>
+  </button>
+  <!-- Modal -->
+  <div
+    id="cart-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cart-title"
+  >
+    <section class="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+      <!-- Cabeçalho do modal -->
+      <header class="flex items-center justify-between border-b p-5">
+        <div>
+          <h2 id="cart-title" class="text-xl font-bold text-slate-900">
+            Meu carrinho
+          </h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Confira seus produtos
+          </p>
+        </div>
+
+        <button
+          id="cart-close"
+          type="button"
+          aria-label="Fechar carrinho"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-2xl text-slate-500 hover:bg-slate-100"
+        >&times;</button>
+      </header>
+
+      <!-- Lista de produtos -->
+      <div id="cart-items" class="flex-1 space-y-3 overflow-y-auto p-5">
+        <p class="text-center text-sm text-slate-500">
+          Seu carrinho está vazio.
+        </p>
+      </div>
+
+      <!-- Total -->
+      <footer class="border-t bg-slate-50 p-5">
+        <div class="mb-4 flex items-center justify-between">
+          <span class="text-slate-600">Total da compra</span>
+          <strong id="cart-total" class="text-xl font-bold">
+            R$ 0,00
+          </strong>
+        </div>
+
+        <button
+          id="checkout-button"
+          type="button"
+          class="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700"
+        >Finalizar compra</button>
+      </footer>
+
+    </section>
+  </div>
+
+</nav>
+
+<!-- Card 1: Tênis -->
+<button
+  onclick="adicionarCarrinho('tenis', 'Tênis esportivo moderno', 199.90)"
+  class="mt-4 w-full rounded-xl bg-indigo-600 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+>
+  + Adicionar
+</button>
+
+
+<script>
+
+    // 1. Estado do carrinho
+    const carrinho = [];
+
+    // 2. Formatar preços
+    function formatarPreco(valor) {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    // 3. Adicionar produto sem duplicar a linha
+    function adicionarCarrinho(id, nome, preco) {
+      const produto = carrinho.find(item => item.id === id);
+
+      if (produto) {
+        produto.quantidade++;
+      } else {
+        carrinho.push({
+          id,
+          nome,
+          preco,
+          quantidade: 1
+        });
+      }
+
+      atualizarCarrinho();
+    }
+
+    // 4. Atualizar contador, lista e total
+    function atualizarCarrinho() {
+      const contador = document.getElementById("cart-count");
+      const lista = document.getElementById("cart-items");
+      const totalElemento = document.getElementById("cart-total");
+
+      contador.textContent = carrinho.reduce(
+        (soma, item) => soma + item.quantidade, 0
+      );
+
+      lista.replaceChildren();
+
+      let totalGeral = 0;
+
+      if (carrinho.length === 0) {
+        const vazio = document.createElement("p");
+        vazio.className = "py-8 text-center text-slate-500";
+        vazio.textContent = "Seu carrinho está vazio.";
+        lista.appendChild(vazio);
+      }
+
+      carrinho.forEach(item => {
+        const subtotal = item.preco * item.quantidade;
+        totalGeral += subtotal;
+
+        const linha = document.createElement("div");
+        linha.className =
+          "flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3";
+
+        const info = document.createElement("div");
+
+        const nome = document.createElement("p");
+        nome.className = "font-semibold text-slate-900";
+        nome.textContent = item.nome;
+
+        const detalhe = document.createElement("p");
+        detalhe.className = "mt-1 text-sm text-slate-500";
+        detalhe.textContent =
+          `${item.quantidade} × ${formatarPreco(item.preco)}`;
+
+        info.append(nome, detalhe);
+
+        const lado = document.createElement("div");
+        lado.className = "flex flex-col items-end gap-2";
+
+        const valor = document.createElement("strong");
+        valor.className = "whitespace-nowrap text-sm";
+        valor.textContent = formatarPreco(subtotal);
+
+        const controles = document.createElement("div");
+        controles.className = "flex items-center gap-2";
+
+        const menos = document.createElement("button");
+        menos.type = "button";
+        menos.textContent = "−";
+        menos.setAttribute("aria-label", "Diminuir quantidade");
+        menos.className = "h-7 w-7 rounded-lg bg-slate-100 hover:bg-slate-200";
+        menos.onclick = () => alterarQuantidade(item.id, -1);
+
+        const qtd = document.createElement("span");
+        qtd.className = "text-sm";
+        qtd.textContent = item.quantidade;
+
+        const mais = document.createElement("button");
+        mais.type = "button";
+        mais.textContent = "+";
+        mais.setAttribute("aria-label", "Aumentar quantidade");
+        mais.className = "h-7 w-7 rounded-lg bg-slate-100 hover:bg-slate-200";
+        mais.onclick = () => alterarQuantidade(item.id, 1);
+
+        const remover = document.createElement("button");
+        remover.type = "button";
+        remover.textContent = "Remover";
+        remover.className = "text-xs text-red-600 hover:underline";
+        remover.onclick = () => removerProduto(item.id);
+
+        controles.append(menos, qtd, mais);
+        lado.append(valor, controles, remover);
+        linha.append(info, lado);
+        lista.appendChild(linha);
+      });
+
+      totalElemento.textContent = formatarPreco(totalGeral);
+    }
+
+    // 5. Alterar quantidade
+    function alterarQuantidade(id, variacao) {
+      const produto = carrinho.find(item => item.id === id);
+      if (!produto) return;
+
+      produto.quantidade += variacao;
+
+      if (produto.quantidade <= 0) {
+        removerProduto(id);
+      } else {
+        atualizarCarrinho();
+      }
+    }
+
+    // 6. Remover produto
+    function removerProduto(id) {
+      const indice = carrinho.findIndex(item => item.id === id);
+      if (indice !== -1) carrinho.splice(indice, 1);
+      atualizarCarrinho();
+    }
+
+    // 7. Abrir e fechar modal
+    const modal = document.getElementById("cart-modal");
+
+    function abrirCarrinho() {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      document.body.classList.add("overflow-hidden");
+      document.getElementById("cart-close").focus();
+    }
+
+    function fecharCarrinho() {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      document.body.classList.remove("overflow-hidden");
+      document.getElementById("cart-button").focus();
+    }
+
+    document.getElementById("cart-button")
+      .addEventListener("click", abrirCarrinho);
+
+    document.getElementById("cart-close")
+      .addEventListener("click", fecharCarrinho);
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) fecharCarrinho();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+        fecharCarrinho();
+      }
+    });
+
+    // 8. Exemplo de ação do botão de compra
+    document.getElementById("checkout-button")
+      .addEventListener("click", () => {
+        if (carrinho.length === 0) {
+          alert("Adicione pelo menos um produto ao carrinho.");
+          return;
+        }
+
+        alert("Carrinho pronto! A integração de pagamento ainda precisa ser implementada.");
+      });
+  
+</script>
+
+
+</body>
+</html>
